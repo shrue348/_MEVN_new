@@ -295,8 +295,8 @@ export default {
   created() {
     document.title = 'CRM | Задачи'
 
-    this.getAllUsers()
-    this.getAllTasks()
+    // this.getAllUsers()
+    // this.getAllTasks()
   }
 }
 </script>

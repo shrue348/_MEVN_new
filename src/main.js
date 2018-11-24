@@ -1,24 +1,31 @@
 import './assets/css/reset.css'
 import './assets/css/style.css'
-import '@deveodk/vue-toastr/dist/@deveodk/vue-toastr.css'
 
 import Vue from 'vue'
 import App from './App'
 import router from './router'
 import VueResource from 'vue-resource'
-// import VueSocketio from 'vue-socket.io';
-import VueToastr from '@deveodk/vue-toastr'
+import VueSocketio from 'vue-socket.io';
 
+// Toastr
+
+import VueToastr from '@deveodk/vue-toastr'
+import '@deveodk/vue-toastr/dist/@deveodk/vue-toastr.css'
 
 // Editor
+
 import VueQuillEditor from 'vue-quill-editor'
 import 'quill/dist/quill.core.css'
 import 'quill/dist/quill.snow.css'
 import 'quill/dist/quill.bubble.css'
 
+// Calendar
 
+import VueTuicalendar from '@lkmadushan/vue-tuicalendar'
+import 'tui-calendar/dist/tui-calendar.min.css'
 
-// Font Awesome
+// Icons Font Awesome
+
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { 
@@ -45,6 +52,7 @@ import {
 	faComments,
 	faChevronLeft
 } from '@fortawesome/free-solid-svg-icons'
+
 library.add(faCoffee, 
 	faBars, 
 	faCog, 
@@ -70,16 +78,10 @@ library.add(faCoffee,
 )
 Vue.component('font-awesome-icon', FontAwesomeIcon)
 
-
-
-
-
-
-
 Vue.config.productionTip = false
 
+// Modifs 
 
-/* modifs */
 Vue.filter('friendlyOnlyDate', function (value) {
 	if (value) {
 		return new Date(value).toLocaleString('ru', {
@@ -89,6 +91,7 @@ Vue.filter('friendlyOnlyDate', function (value) {
 		});
 	}
 })
+
 Vue.filter('friendlyDate', function (value) {
 	if (value) {
 		return new Date(value).toLocaleString('ru', {
@@ -100,6 +103,7 @@ Vue.filter('friendlyDate', function (value) {
 		});
 	}
 })
+
 Vue.filter('friendlyTime', function (value) {
 	if (value) {
 		return new Date(value).toLocaleString('ru', {
@@ -108,6 +112,7 @@ Vue.filter('friendlyTime', function (value) {
 		});
 	}
 })
+
 Vue.filter('priceFormat', function (value) {
 	if (value) {
 		return value.toFixed(2).replace(/./g, function (c, i, a) {
@@ -115,10 +120,12 @@ Vue.filter('priceFormat', function (value) {
 		});
 	}
 })
+
 Vue.filter('striphtml', function (value) {
 	let regex = /(<([^>]+)>)/ig;
 	return String(value).replace(regex, "");
 });
+
 Vue.filter('truncate', function (text, length, clamp) {  // {{data.content | truncate(300, '...')}}
 	clamp = clamp || '...';
 	var node = document.createElement('div');
@@ -127,8 +134,6 @@ Vue.filter('truncate', function (text, length, clamp) {  // {{data.content | tru
 	return content.length > length ? content.slice(0, length) + clamp : content;
 });
 
-
-
 Vue.use(VueResource)
 Vue.use(VueToastr, {
 	defaultPosition: 'toast-top-right',
@@ -136,6 +141,7 @@ Vue.use(VueToastr, {
 })
 // Vue.use(VueSocketio, 'localhost:9999');
 Vue.use(VueQuillEditor)
+Vue.use(VueTuicalendar)
 
 new Vue({
   el: '#app',

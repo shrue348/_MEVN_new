@@ -92,7 +92,8 @@ export default {
 
   methods: {
     logout(){
-      return location.href = '/'
+      localStorage.removeItem('token')
+      return this.$router.push('/')
     },
 
 

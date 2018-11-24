@@ -1,42 +1,42 @@
-const Koa = require('koa'); // core
-const Router = require('koa-router'); // routing
-const bodyParser = require('koa-bodyparser'); // POST parser
-const serve = require('koa-static'); // serves static files like index.html
-const logger = require('koa-logger'); // optional module for logging
+const Koa = require('koa');
+const Router = require('koa-router');
+const bodyParser = require('koa-bodyparser');
+const serve = require('koa-static');
+const logger = require('koa-logger');
 
-const passport = require('koa-passport'); //passport for Koa
-const LocalStrategy = require('passport-local'); //local Auth Strategy
-const JwtStrategy = require('passport-jwt').Strategy; // Auth via JWT
-const ExtractJwt = require('passport-jwt').ExtractJwt; // Auth via JWT
+const passport = require('koa-passport');
+const LocalStrategy = require('passport-local');
+const JwtStrategy = require('passport-jwt').Strategy;
+const ExtractJwt = require('passport-jwt').ExtractJwt;
 
-const jwtsecret = "mysecretkey"; // signing key for JWT
-const jwt = require('jsonwebtoken'); // auth via JWT for hhtp
-const socketioJwt = require('socketio-jwt'); // auth via JWT for socket.io
-
+const jwtsecret = "mysecretkey";
+const jwt = require('jsonwebtoken');
 const socketIO = require('socket.io');
+const socketioJwt = require('socketio-jwt');
 
-const mongoose = require('mongoose'); // standard module for  MongoDB
-const crypto = require('crypto'); // crypto module for node.js for e.g. creating hashes
+const mongoose = require('mongoose');
+const crypto = require('crypto');
 
+const cors = require('koa-cors');
 const app = new Koa();
 const router = new Router();
 
 
-
+app.use(cors());
 app.use(serve('public'));
 app.use(logger());
 app.use(bodyParser());
 
-app.use(passport.initialize()); // initialize passport first
-app.use(router.routes()); // then routes
-const server = app.listen(3000);// launch server on port  3000
+app.use(passport.initialize());
+app.use(router.routes());
+const server = app.listen(3000);
 
-mongoose.Promise = Promise; // Ask Mongoose to use standard Promises
-mongoose.set('debug', true);  // Ask Mongoose to log DB request to console
-mongoose.connect('mongodb://localhost/test'); // Connect to local database
+mongoose.Promise = Promise;
+mongoose.set('debug', true);
+mongoose.connect('mongodb://localhost/test');
 mongoose.connection.on('error', console.error);
 
-//---------Use Schema and Module  ------------------//
+//---------Use Schema and Module------------//
 
 const userSchema = new mongoose.Schema({
   displayName: String,
@@ -47,6 +47,13 @@ const userSchema = new mongoose.Schema({
   },
   passwordHash: String,
   salt: String,
+  name: String,
+  lastName: String,
+  phone: String,
+  position: String,
+  role: String,
+  active: Boolean,
+  note: String
 }, {
   timestamps: true
 });
@@ -62,7 +69,6 @@ userSchema.virtual('password')
     this.passwordHash = undefined;
   }
 })
-
 .get(function () {
   return this._plainPassword;
 });
@@ -98,6 +104,8 @@ passport.use(new LocalStrategy({
 
 //----------Passport JWT Strategy--------//
 
+//----------User--------//
+
 // Expect JWT in the http header
 
 const jwtOptions = {
@@ -106,24 +114,26 @@ const jwtOptions = {
 };
 
 passport.use(new JwtStrategy(jwtOptions, function (payload, done) {
-    User.findById(payload.id, (err, user) => {
-      if (err) {
-        return done(err)
-      }
-      if (user) {
-        done(null, user)
-      } else {
-        done(null, false)
-      }
-    })
+
+  User.findById(payload.id, (err, user) => {
+    if (err) {
+      return done(err)
+    }
+    if (user) {
+      done(null, user)
+    } else {
+      done(null, false)
+    }
   })
-);
+
+}));
 
 //------------Routing---------------//
 
 // new user route
 
 router.post('/user', async(ctx, next) => {
+
   try {
     ctx.body = await User.create(ctx.request.body);
   }
@@ -131,22 +141,24 @@ router.post('/user', async(ctx, next) => {
     ctx.status = 400;
     ctx.body = err;
   }
+
 });
 
 // local auth route. Creates JWT is successful
 
 router.post('/login', async(ctx, next) => {
+
   await passport.authenticate('local', function (err, user) {
+
     if (user == false) {
       ctx.body = "Login failed";
     } else {
-      //--payload - info to put in the JWT
       const payload = {
         id: user.id,
         displayName: user.displayName,
         email: user.email
       };
-      const token = jwt.sign(payload, jwtsecret); //JWT is created here
+      const token = jwt.sign(payload, jwtsecret); 
 
       ctx.body = {user: user.displayName, token: 'JWT ' + token};
     }
@@ -154,36 +166,109 @@ router.post('/login', async(ctx, next) => {
 
 });
 
-// JWT auth route
+// Userlist
 
-router.get('/custom', async(ctx, next) => {
+router.get('/user', async (ctx, next) => {
 
-  await passport.authenticate('jwt', function (err, user) {
+  await passport.authenticate('jwt', async function (err, user) {
+
     if (user) {
-      ctx.body = "hello " + user.displayName;
+      try {
+        ctx.body = await User.find(ctx.request.body);
+      }
+      catch (err) {
+        ctx.status = 400;
+        ctx.body = err;
+      }
     } else {
       ctx.body = "No such user";
       console.log("err", err)
     }
-  } )(ctx, next)
+  })(ctx, next)
 
 });
+
+// Get user by ID
+
+router.get('/user/:id', async (ctx, next) => {
+
+  await passport.authenticate('jwt', async function (err, user) {
+
+    if (user) {
+      try {
+        let obj = await User.findById(ctx.params.id);
+        let responseObj = {
+          _id: obj._id,
+          displayName: obj.displayName,
+          email: obj.email,
+          name: obj.name,
+          lastName: obj.lastName,
+          phone: obj.phone,
+          position: obj.position,
+          role: obj.role,
+          active: obj.active,
+          updatedAt: obj.updatedAt,
+        };
+        ctx.body = responseObj
+      }
+      catch (err) {
+        ctx.status = 400;
+        ctx.body = err;
+      }
+    } else {
+      ctx.body = "No such user";
+      console.log("err", err)
+    }
+  })(ctx, next)
+
+});
+
+// Save user by ID
+
+router.put('/user/:id', async (ctx, next) => {
+ 
+  await passport.authenticate('jwt', async function (err, user) {
+
+    if (user) {
+      try {
+        ctx.body = await User.findByIdAndUpdate(ctx.params.id, ctx.request.body);
+      }
+      catch (err) {
+        ctx.status = 400;
+        ctx.body = err;
+      }
+    } else {
+      ctx.body = "No such user";
+      console.log("err", err)
+    }
+  })(ctx, next)
+
+});
+
+// check admin
 
 router.get('/login/checkadmin', async (ctx, next) => {
 
   await User.findOne({ displayName: 'admin' }, (err, user) => {
+
     if (err) ctx.body = err;
 
     if (!user) {
-      ctx.body = '{"hasAdminAccount": "false"}';
+      ctx.body = "false";
     } else {
-      ctx.body = '{"hasAdminAccount": "true"}';
+      ctx.body = "true";
     }
   });
 
 });
 
+//----------Task--------//
+
+
+
+
 //---Socket Communication-----//
+
 let io = socketIO(server);
 
 io.on('connection', socketioJwt.authorize({

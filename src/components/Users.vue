@@ -33,7 +33,7 @@
               </div>
             </div>
             <div class="wbl font12">
-              <div class="colorgrey mgla mgr20">Отредактировано: {{user.updated_date|friendlyDate}}</div>
+              <div class="colorgrey mgla mgr20">Отредактировано: {{user.updatedAt|friendlyDate}}</div>
               <div class="colorgrey"><span v-if="user.active" class="colorgreen b">Активный</span><span v-else class="colorred b">Отключен</span></div>
             </div>
           </div>
@@ -66,7 +66,7 @@
           <label>Имя</label>
         </div>
         <div class="form-group-material">
-          <masked-input type="text" required v-model="newUserModal.userData.phone" mask="\+\7 (111) 1111-11" />
+          <masked-input type="text" required v-model="newUserModal.userData.phone" mask="\+\7 (111) 111-11-11" />
           <div class="form-group-material-highlight"></div>
           <label>Телефон</label>
         </div>
@@ -101,12 +101,20 @@
     </modal>
 
     <modal v-if="showEditUserModal">
-      <template slot="header"><div class="modal_title">Редактировать пользователя</div></template>
+      <template slot="header">
+        <div class="modal_title"><img class="edit_user_item__img" src="https://cdn.dribbble.com/users/16041/avatars/small/e6c7fac4033b9c233a3bd82ce55c4430.jpg"
+          alt=""></div>
+      </template>
       <template slot="body">
         <div class="form-group-material">
-          <input type="text" required v-model="editUserModal.userData.login">
+          <input type="text" required v-model="editUserModal.userData.displayName" :disabled="editUserModal.userData.displayName == 'admin'" class="active">
           <div class="form-group-material-highlight"></div>
           <label>Логин</label>
+        </div>
+        <div class="form-group-material">
+          <input type="text" required v-model="editUserModal.userData.email">
+          <div class="form-group-material-highlight"></div>
+          <label>Email</label>
         </div>
         <div class="form-group-material">
           <input type="text" required v-model="editUserModal.userData.password">
@@ -126,10 +134,10 @@
         <div class="form-group-material">
           <input type="text" required v-model="editUserModal.userData.name">
           <div class="form-group-material-highlight"></div>
-          <label>Имя *</label>
+          <label>Имя</label>
         </div>
         <div class="form-group-material">
-          <masked-input type="text" required v-model="editUserModal.userData.phone" mask="\+\7 (111) 1111-11" />
+          <masked-input type="text" required v-model="editUserModal.userData.phone" mask="\+\7 (111) 111-11-11" />
           <div class="form-group-material-highlight"></div>
           <label>Телефон</label>
         </div>
@@ -168,15 +176,14 @@
       </template>
     </modal>
 
-
-    <datepicker 
+    <!-- <datepicker 
       placeholder="Выберите дату" 
       :language="datePicker.ru" 
       :format="datePickerFormat" 
       v-model="datePicker.date" 
       :monday-first="true" 
       :highlighted="datePicker.highlighted"
-    ></datepicker>
+    ></datepicker> -->
 
   </div>
 </template>
@@ -222,7 +229,18 @@ export default {
         }
       },
       showEditUserModal: false,
-      editUserModal: {},
+      editUserModal: {
+        login: '',
+        email: '',
+        password: '',
+        name: '',
+        lastName: '',
+        phone: '',
+        position: '',
+        role: '',
+        active: '',
+        note: ''
+      },
       userList: [],
       userListLoader: false,
       roleList: {
@@ -255,6 +273,10 @@ export default {
   },
 
   computed: {
+    token(){
+      return localStorage.getItem('token')
+    },
+
     userSortedList(){
       return this.userList.sort((min, max)=>{
         return min.name - max.name
@@ -262,7 +284,8 @@ export default {
     },
 
     disabledSaveUser(){
-      return (this.editUserModal.userData.password.length > 0 || this.passwordRepeat.length > 0) && this.editUserModal.userData.password != this.passwordRepeat
+      return false
+      // return (this.editUserModal.userData.password.length > 0 || this.passwordRepeat.length > 0) && this.editUserModal.userData.password != this.passwordRepeat
     },
   },
 
@@ -275,8 +298,6 @@ export default {
       this.datePicker.highlighted.days.push(dayNum)
       return dayNames[dayNum]
     },
-
-
 
     getHtml: function (data) {
       //data contains html string for render
@@ -291,7 +312,8 @@ export default {
       this.$http.get(`${host.host}/user`, {
         headers: {
           'Content-Type' : 'application/json; charset=UTF-8',
-          'Accept' : 'application/json'
+          'Accept' : 'application/json',
+          'Authorization': this.token
         }
       }).then(response => {
         this.userListLoader = false
@@ -328,7 +350,8 @@ export default {
       this.$http.get(`${host.host}/user/${id}`, {
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'Authorization': this.token
         }
       }).then(response => {
         this.editUserModal.userData = response.body
@@ -340,22 +363,23 @@ export default {
 
     saveUser(id){
       let obj = {
-        login: this.editUserModal.userData.login,
+        login:    this.editUserModal.userData.displayName,
+        email:    this.editUserModal.userData.email,
         password: this.editUserModal.userData.password,
-        name: this.editUserModal.userData.name,
+        name:     this.editUserModal.userData.name,
         lastName: this.editUserModal.userData.lastName,
-        phone: this.editUserModal.userData.phone,
+        phone:    this.editUserModal.userData.phone,
         position: this.editUserModal.userData.position,
-        role: this.editUserModal.userData.role,
-        active: this.editUserModal.userData.active,
-        note: this.editUserModal.userData.note,
-        updated_date: Date.now()
+        role:     this.editUserModal.userData.role,
+        active:   this.editUserModal.userData.active,
+        note:     this.editUserModal.userData.note
       }
 
       this.$http.put(`${host.host}/user/${id}`, obj, {
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'Authorization': this.token
         }
       }).then(response => {
         this.showEditUserModal = false
@@ -398,17 +422,21 @@ export default {
 
 
 .user_item {
-  padding: .5em 1em; transition: all .2s ease; margin-bottom: 1em; background-color: #fff; box-shadow: 0 2px 2px 0 rgba(0,0,0,0.16), 0 0 0 1px rgba(0,0,0,0.08); display: flex; align-items: flex-start;
+  padding: .5em 1em; transition: all .2s ease; background-color: #fff; box-shadow: 0 2px 2px 0 rgba(0,0,0,0.16), 0 0 0 1px rgba(0,0,0,0.08); display: flex; align-items: flex-start;
   &:hover { background-color: #f7f7f7; }
+
+  &:not(:last-child) { border-bottom: 1px solid #eaeaea; }
 }
 .user_item__info { flex: 1 1 auto; }
 .user_item__name { font-weight: bold; font-size: 1.1em; }
 .user_item__edit { 
   color: #888; font-size: .8em; margin-left: auto; 
-  &:hover { text-decoration: underline; }
+  &:hover { color: #00BCD4; }
 }
-.user_item__props { color: #444; }
+.user_item__props { color: #666; }
 .user_item__img { border-radius: 100px; margin-right: 1.5em; margin-top: .5em; box-shadow: 0 0 0 .3em #fff, 0 0 0 .33em #ccc; }
+
+.edit_user_item__img { border-radius: 100px; box-shadow: 0 0 0 .3em #fff, 0 0 0 .33em #ccc; display: block; margin: 1em auto 2em; }
 
 </style>
 

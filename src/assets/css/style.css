@@ -298,6 +298,8 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill { bac
     border: 0 none;
 }
 
+.form-group-material input:disabled { color: #888; }
+
 .form-group-material input[type="text"]:focus ~ .form-group-material-highlight,
 .form-group-material input[type="password"]:focus ~ .form-group-material-highlight,
 .form-group-material input[type="email"]:focus ~ .form-group-material-highlight,
@@ -316,10 +318,12 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill { bac
 .form-group-material input[type="tel"]:focus ~ label, .form-group-material input[type="tel"]:valid ~ label, 
 .form-group-material input[type="url"]:focus ~ label, .form-group-material input[type="url"]:valid ~ label, 
 .form-group-material select ~ label, .form-group-material select ~ label,
-.form-group-material textarea:focus ~ label, .form-group-material textarea:valid ~ label {
+.form-group-material textarea:focus ~ label, .form-group-material textarea:valid ~ label,
+.form-group-material input.active ~ label {
   font-size: .8em;
   transform: translateY(-1.7em);
 } 
+
 .form-group-material input[type="text"]:focus ~ label, 
 .form-group-material input[type="password"]:focus ~ label, 
 .form-group-material input[type="email"]:focus ~ label, 
