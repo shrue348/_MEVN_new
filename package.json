@@ -25,6 +25,7 @@
     "koa-router": "^7.0.1",
     "koa-static": "^3.0.0",
     "mongoose": "^4.9.0",
+    "mongoose-unique-array": "^0.2.0",
     "passport-jwt": "^2.2.1",
     "passport-local": "^1.0.0",
     "sass-loader": "^7.1.0",
@@ -40,6 +41,8 @@
     "vue-socket.io": "^2.1.1-b",
     "vue-the-mask": "^0.11.1",
     "vue-toastr": "^2.0.16",
+    "vue-tree": "^1.0.0",
+    "vue-vtree": "^0.1.1",
     "vue2-timepicker": "^0.1.4",
     "vuejs-datepicker": "^1.5.4"
   },

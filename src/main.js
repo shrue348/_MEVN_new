@@ -6,6 +6,7 @@ import App from './App'
 import router from './router'
 import VueResource from 'vue-resource'
 import VueSocketio from 'vue-socket.io';
+import VTree from 'vue-vtree';
 
 // Toastr
 
@@ -123,7 +124,7 @@ Vue.filter('priceFormat', function (value) {
 
 Vue.filter('striphtml', function (value) {
 	let regex = /(<([^>]+)>)/ig;
-	return String(value).replace(regex, "");
+	return String(value).replace(regex, " ");
 });
 
 Vue.filter('truncate', function (text, length, clamp) {  // {{data.content | truncate(300, '...')}}
@@ -142,6 +143,8 @@ Vue.use(VueToastr, {
 // Vue.use(VueSocketio, 'localhost:9999');
 Vue.use(VueQuillEditor)
 Vue.use(VueTuicalendar)
+Vue.component('v-tree', VTree);
+
 
 new Vue({
   el: '#app',

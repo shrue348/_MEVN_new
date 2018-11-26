@@ -105,7 +105,7 @@ export default {
     },
 
     createAmin(){
-      this.$http.post(`${host.host}/user`, {
+      this.$http.post(`${host.host}/user/createAdmin`, {
         displayName: 'admin',
         name: 'Администратор',
         email: this.form.adminEmail,

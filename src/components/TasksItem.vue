@@ -8,8 +8,8 @@
 
     <div class="wrapper">
       <div class="btn_block">
-        <button class="btn btn_round btn_noup" @click="$router.push('/tasks')"><font-awesome-icon icon="chevron-left"></font-awesome-icon> Назад</button>
-        <a href="#" class="btn btn_orange btn_round btn_icon mgla"><font-awesome-icon icon="bars"></font-awesome-icon></a>
+        <button class="btn btn_round btn_noup btn_blank" @click="$router.push('/tasks')"><font-awesome-icon icon="chevron-left"></font-awesome-icon> Назад</button>
+        <a href="javascript:;" class="btn btn_orange btn_round btn_icon mgla"><font-awesome-icon icon="bars"></font-awesome-icon></a>
       </div>
 
       <div class="page_row">
@@ -24,57 +24,85 @@
                     <div v-else class="task_item__priority" :class="'task_item__priority-' + task.priority"></div>
                     {{task.title}}
                   </div>
-                  <a href="#" class="task_item__edit" @click="editTask(task._id)">
+                  <a href="javascript:;" class="task_item__edit" @click="editTask(task._id)">
                     <font-awesome-icon icon="pencil-alt"></font-awesome-icon> Редактировать
                   </a>
                 </div>
                 <div class="wbl font12 mgb20">
                   <div class="colorgrey mgra">
-                    <font-awesome-icon icon="comments" class="mgr5"></font-awesome-icon> Комментариев: {{task.commentCount}}
+                    <font-awesome-icon icon="comments" class="mgr5"></font-awesome-icon> Комментариев: {{task.comments.length}}
                   </div>
-                  <div class="colorgrey mgla mgr20">Создана: {{task.created_date|friendlyDate}}</div>
+                  <div class="colorgrey mgla mgr20">Создана: {{task.createdAt|friendlyDate}}</div>
                   <div class="colorgrey mgr20" v-if="task.updated_date >= task.created_date">Отредактирована:
                     {{task.updated_date|friendlyDate}}</div>
                   <div class="colorgrey"><span v-if="task.active" class="colorgreen b">Активная</span><span v-else class="colorred b">Неактивная</span></div>
                 </div>
                 <div class="wbl font14">
                   <div class="task_item__props">
-                    <div class="task_item__prop_line" v-if="task.maker">Постановщик: {{task.maker}}</div>
-                    <div class="task_item__prop_line" v-if="task.deadline_date">Дедлайн: {{task.deadline_date|friendlyOnlyDate}}</div>
-                    <div class="task_item__prop_line task_item__description" v-if="task.description" v-html="task.description"></div>
-                  </div>
-                </div>
-              </div>
-
-              <hr class="mgb0">
-
-              <div class="task_item__comments">
-                <div class="h4 mgb20">Комментарии:</div>
-                <div class="comment">
-                  <div class="comment__top wbl">
-                    <div class="comment__title">Алексеев Александр</div>
-                  </div>
-                  <div class="wbl">
-                    <div class="txt">
-                      Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard
-                      dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen
-                      book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially
-                      unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and
-                      more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
-                    </div>
-                    <a class="comment__response_link" href="#">ответить</a>
+                    <div class="task_item__prop_line mgb5" v-if="task.creator">Постановщик: {{task.creator}}</div>
+                    <div class="task_item__prop_line mgb30" v-if="task.deadLine">Дедлайн: {{task.deadLine|friendlyOnlyDate}}</div>
+                    <template v-if="task.description">
+                      <div class="task_item__prop_line task_item__description txt" v-if="task.description" v-html="task.description"></div>
+                    </template>
+                    <hr class="mgb10">
+                    <a class="comment__response_link" href="javascript:;" @click="showAddComment(0)">ответить</a>
                   </div>
                 </div>
               </div>
             </div>
+
+            <div class="task_item">
+              <div class="task_item__comments">
+                <div class="h4 mgb20">Комментарии:</div>
+
+                <template v-if="task.comments.length > 0">
+                  
+                  <v-tree :scope-data="commentsTree">
+                    <div slot-scope="menuLevel" class="comment_list">
+
+                      <div class="comment" :class="{'comment-with_comments': comment.children.length > 0}" v-for="(comment, key) in menuLevel">
+                        <img src="https://cdn.dribbble.com/users/16041/avatars/small/e6c7fac4033b9c233a3bd82ce55c4430.jpg"
+                          alt="" class="comment__user">
+                        
+                        <div class="comment__info">
+                          <div class="comment__top wbl">
+                            <div class="comment__title">{{comment.creator}}</div>
+                            <div class="colorgrey font12 mgl20">{{comment.addedAt|friendlyOnlyDate}}</div>
+                            <div class="colorgrey font12 mgla">id: {{comment.comment_id}}, parent: {{comment.parent}}</div>
+                          </div>
+                          <div class="txt" v-html="comment.text"></div>
+        
+                          <a class="comment__response_link" href="javascript:;" @click="showAddComment(comment.comment_id)" v-if="!comment.addComment">ответить</a>
+
+                          <div v-if="comment.addComment" class="addCommentForm">
+                            <div class="loading" v-if="addCommentLoader"></div>
+                            <template v-else>
+                              <div class="form-group mgb10">
+                                <label>Написать комментарий</label>
+                                <quill-editor v-model="newComment.text" ref="addCommentEditor" :options="editorOption">
+                                </quill-editor>
+                              </div>
+                              <div class="form-group mgb10">
+                                <button class="btn btn-green btn_noup" @click="addComment">Отправить</button>
+                              </div>
+                            </template>
+                          </div>
+                        </div>
+                        <v-tree v-if="comment.children.length > 0" :scope-data="comment.children"></v-tree>
+                      </div>
+
+                    </div>
+                  </v-tree>
+
+                </template>
+              </div>
+            </div>
           </div>
-          
         </div>
         <div class="page_row__right">
-          <datepicker :inline="true" :language="datepicker.ru"></datepicker>
+          <datepicker :inline="true" :language="datepicker.ru" :monday-first="true"></datepicker>
         </div>
       </div>
-
     </div>
   </div>
 </template>
@@ -97,19 +125,78 @@ export default {
 
   data () {
     return {
+      editorOption: {
+        placeholder: '',
+        modules: {
+
+        }
+      },
       datepicker: {
         en: en,
         ru: ru,
       },
       host: host,
       taskLoader: false,
-      task: {}
+      task: {
+        comments: []
+      },
+      addCommentLoader: false,
 
+      newCommentTemplate: {
+        parent: 0,
+        text: ''
+      }
+    
     }
   },
 
   computed: {
-  
+    token() {
+      return localStorage.getItem('token')
+    },
+
+    taskId(){
+      return this.$route.params.id
+    },
+
+    newComment() {
+      this.$set(this.newCommentTemplate, 'comment_id', this.task.comments.length + 1)
+      return this.newCommentTemplate
+    },
+
+    sortedComments(){
+      return this.task.comments.map((item) => {
+        this.$set(item, 'addComment', false)
+        return item
+      })
+    },
+
+    commentsTree(){
+      let arr = this.sortedComments,
+          tree = [],
+          mappedArr = {},
+          arrElem,
+          mappedElem;
+
+      // hash obj
+      for (var i = 0, len = arr.length; i < len; i++) {
+        arrElem = arr[i];
+        mappedArr[arrElem.comment_id] = arrElem;
+        mappedArr[arrElem.comment_id]['children'] = [];
+      }
+
+      for (var id in mappedArr) {
+        if (mappedArr.hasOwnProperty(id)) {
+          mappedElem = mappedArr[id];
+          if (mappedElem.parent) {
+            mappedArr[mappedElem['parent']]['children'].push(mappedElem);
+          } else {
+            tree.push(mappedElem);
+          }
+        }
+      }
+      return tree;
+    }
   },
 
   methods: {
@@ -120,13 +207,46 @@ export default {
       this.$http.get(`${host.host}/task/${id}`, {
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'Authorization': this.token
         }
       }).then(response => {
         this.taskLoader = false
         this.task = response.body
       }, response => {
         this.taskLoader = false
+      })
+    },
+
+    showAddComment(key){
+      let comments = this.task.comments 
+
+      this.newComment.parent = key
+
+      for(let i=0; i < comments.length; i++){
+        comments[i].addComment = false
+        if (key == comments[i].comment_id) {
+          comments[i].addComment = true
+        }
+      }
+    },
+
+    addComment(){
+      this.addCommentLoader = true
+      this.$http.post(`${host.host}/task/comment/${this.taskId}`, this.newComment, {
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Accept': 'application/json',
+          'Authorization': this.token
+        }
+      }).then(response => {
+        this.addCommentLoader = false
+        this.newCommentTemplate.text = ''
+        this.task.comments.push(this.newComment)
+        this.getTask()
+      }, response => {
+        this.addCommentLoader = false
+
       })
 
     }
@@ -141,19 +261,46 @@ export default {
 
 <style lang="scss" scoped>
 .task_item {
-  padding: .5em 1em; transition: all .2s ease; margin-bottom: 1em; background-color: #fff; box-shadow: 0 2px 2px 0 rgba(0,0,0,0.16), 0 0 0 1px rgba(0,0,0,0.08); display: flex; align-items: flex-start; flex-direction: column;
+  padding: .5em 1em; transition: all .2s ease; margin-bottom: 1em; background-color: #fff; /* box-shadow: 0 2px 2px 0 rgba(0,0,0,0.16), 0 0 0 1px rgba(0,0,0,0.08); */ display: flex; align-items: flex-start; flex-direction: column;
 }
 .task_item__top { display: flex; align-items: flex-start; flex-wrap: nowrap; }
 .task_item__link { padding-right: 2em; display: inline-block; }
-.task_item__info { flex: 1 1 auto; }
+.task_item__info { width: 100%; }
 .task_item__name { font-weight: bold; font-size: 1.1em; }
 .task_item__edit { 
   color: #888; font-size: .8em; margin-left: auto; white-space: nowrap; line-height: 1.6em; 
-  &:hover { text-decoration: underline; }
+  &:hover { color: #00BCD4; }
 }
-.task_item__description { margin-block-end: 1em; font-weight: 300; color: #444;}
+.task_item__description { margin-block-end: 1em; font-weight: 400; color: #444; width: 100%; padding: .7em; box-sizing: border-box; background-color: #f6f6f6; }
+.task_item__comments { width: 100%; }
+.task_item__props { margin-bottom: 2em; width: 100%; }
 
+.comment { display: flex; align-items: flex-start; flex-wrap: wrap; position: relative; }
+.comment__title { font-weight: bold; font-size: 12px; }
+.comment__user {
+    border-radius: 100px;
+    margin-right: 1.5em;
+    margin-top: .5em;
+    -webkit-box-shadow: 0 0 0 0.3em #fff, 0 0 0 0.33em #ccc;
+    box-shadow: 0 0 0 0.3em #fff, 0 0 0 0.33em #ccc;
+    width: 32px;
+    height: 32px;
+    position: relative;
+    z-index: 3;
+    top: -3px;
+}
+.comment__info { flex: 1 1 auto; }
+.addCommentForm { padding: .7em; box-sizing: border-box; background-color: #f6f6f6; }
 
-
-
+.comment_list { flex: 0 0 100%; box-sizing: border-box; }
+.comment .comment_list { padding-left: 2em; margin-top: 1em; }
+.comment .comment_list .comment { margin-bottom: 10px; }
+.comment.comment-with_comments .comment:before { 
+  position: absolute; content: ''; left: -20px; top: -70px; width: 2px; height: 90px;  
+  background: -moz-linear-gradient(top, rgba(30,87,153,0) 0%, rgba(204,204,204,1) 100%);
+  background: -webkit-linear-gradient(top, rgba(30,87,153,0) 0%,rgba(204,204,204,1) 100%);
+  background: linear-gradient(to bottom, rgba(30,87,153,0) 0%,rgba(204,204,204,1) 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#001e5799', endColorstr='#cccccc',GradientType=0 );
+}
+.comment.comment-with_comments .comment:after { position: absolute; content: ''; left: -20px; top: 9px; width: 10px; height: 10px; border-bottom: 2px solid #ccc; }
 </style>

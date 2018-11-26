@@ -16,44 +16,46 @@
         <span class="check-switch-desc">
           Созданые мной
         </span>
-        <a href="#" class="btn btn_orange btn_round btn_icon mgla"><font-awesome-icon icon="bars"></font-awesome-icon></a>
+        <a href="javascript:;" class="btn btn_orange btn_round btn_icon mgla"><font-awesome-icon icon="bars"></font-awesome-icon></a>
       </div>
 
       <div class="page_row">
         <div class="page_row__center">
           <div class="loading" v-if="taskListLoader"></div>
           <div class="task_list" v-else>
-            <div class="task_item" v-for="task in taskListReverse">
+            <div class="task_item" v-for="task in taskListReverse" v-if="taskListReverse.length > 0">
               <div class="task_item__info">
                 <div class="wbl task_item__top">
                   <div class="task_item__name">
-                    <a href="#" class="task_item__link" @click="$router.push('tasks/id/'+ task._id)">
+                    <a href="javascript:;" class="task_item__link" @click="$router.push('tasks/id/'+ task._id)">
                       <font-awesome-icon v-if="task.priority == 1" icon="fire" class="colorred mgr10"></font-awesome-icon>
                       <div v-else class="task_item__priority" :class="'task_item__priority-' + task.priority"></div>
                       {{task.title}}
                     </a>
                   </div>
-                  <a href="#" class="task_item__edit" @click="editTask(task._id)"><font-awesome-icon icon="pencil-alt"></font-awesome-icon> Редактировать</a>
+                  <!-- <a href="javascript:;" class="task_item__edit" @click="editTask(task._id)"><font-awesome-icon icon="pencil-alt"></font-awesome-icon> Редактировать</a> -->
                 </div>
                 <div class="wbl font14">
                   <div class="task_item__props">
-                    <div class="task_item__prop_line" v-if="task.maker">Постановщик: {{task.maker}}</div>
-                    <div class="task_item__prop_line" v-if="task.deadline_date">Дедлайн: {{task.deadline_date|friendlyOnlyDate}}</div>
+                    <div class="task_item__prop_line mgb5" v-if="task.creator">Постановщик: {{task.creator}}</div>
                     <div class="task_item__prop_line task_item__description" v-if="task.description">{{ task.description | striphtml | truncate(450, '...' )}}</div>
                   </div>
                 </div>
                 <div class="wbl font12">
                   <div class="colorgrey mgra"><font-awesome-icon icon="comments" class="mgr5"></font-awesome-icon> Комментариев: {{task.commentCount}}</div>
-                  <div class="colorgrey mgla mgr20">Создана: {{task.created_date|friendlyDate}}</div>
-                  <div class="colorgrey mgr20" v-if="task.updated_date >= task.created_date">Отредактирована: {{task.updated_date|friendlyDate}}</div>
+                  <div class="colorgrey mgla mgr20">Создана: {{task.createdAt|friendlyDate}}</div>
+                  <div class="colorgrey mgr20" v-if="task.deadLine">Дедлайн: {{task.deadLine|friendlyOnlyDate}}</div>
+                  <div class="colorgrey mgr20" v-if="task.updated_date >= task.created_date">Отредактирована: {{task.updatedAt|friendlyDate}}</div>
                   <div class="colorgrey"><span v-if="task.active" class="colorgreen b">Активная</span><span v-else class="colorred b">Неактивная</span></div>
                 </div>
               </div>
             </div>
+
+            <p v-if="taskListReverse.length == 0">Список задач пуст</p>
           </div>
         </div>
         <div class="page_row__right">
-          <datepicker :inline="true" :language="datepicker.ru"></datepicker>
+          <datepicker :inline="true" :language="datePicker.ru" :monday-first="true"></datepicker>
         </div>
       </div>
     </div>
@@ -71,7 +73,7 @@
         </div>
     
         <div class="row">
-          <div class="col-4">
+          <div class="col-3">
             <div class="form-group-material">
               <select required>
                 <option v-for="(value, key) in userList" :value="key">{{value.lastName}} {{value.name}}</option>
@@ -80,7 +82,7 @@
               <label>Исполнитель</label>
             </div>
           </div>
-          <div class="col-4">
+          <div class="col-3">
             <div class="form-group-material">
               <select required>
                 <option>Продажа</option>
@@ -93,10 +95,10 @@
               <label>Тип задачи</label>
             </div>
           </div>
-          <div class="col-4">
+          <div class="col-3">
             <div class="form-group-material" >
               <select required v-model="newTaskModal.taskData.priority">
-                <option :value="1">Горит!!!</option>
+                <option :value="1">Горит!</option>
                 <option :value="2">Очень высокий</option>
                 <option :value="3">Высокий</option>
                 <option :value="4">Стандартный</option>
@@ -105,6 +107,19 @@
               </select>
               <div class="form-group-material-highlight"></div>
               <label>Приоритет</label>
+            </div>
+          </div>
+          <div class="col-3">
+            <div class="form-group-material" >
+              <datepicker 
+                placeholder="Выберите дату" 
+                :language="datePicker.ru" 
+                v-model="newTaskModal.taskData.deadLine" 
+                :monday-first="true" 
+                :highlighted="datePicker.highlighted"
+              ></datepicker>
+              <div class="form-group-material-highlight"></div>
+              <label>Дедлайн</label>
             </div>
           </div>
         </div>
@@ -186,10 +201,13 @@ export default {
       userList: [],
       taskList: [],
       previewHtml: '',
-      datepicker: {
-        en: en,
+      datePicker: {
         ru: ru,
-      },
+        date: '',
+        highlighted: {
+          days: []
+        }
+      }
     }
   },
 
@@ -198,6 +216,10 @@ export default {
   },
 
   computed: {
+    token() {
+      return localStorage.getItem('token')
+    },
+
     taskListReverse(){
       return this.taskList.reverse()
     }
@@ -225,7 +247,8 @@ export default {
       this.$http.post(`${host.host}/task`, this.newTaskModal.taskData, {
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'Authorization': this.token
         }
       }).then(response => {
         this.getAllTasks()
@@ -251,7 +274,8 @@ export default {
       this.$http.get(`${host.host}/task`, {
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'Authorization': this.token
         }
       }).then(response => {
         this.taskListLoader = false
@@ -269,7 +293,8 @@ export default {
       this.$http.delete(`${host.host}/task/${id}`, {
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'Authorization': this.token
         }
       }).then(response => {
         this.getAllTasks()
@@ -282,11 +307,13 @@ export default {
       this.$http.get(`${host.host}/user`, {
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'Authorization': this.token
         }
       }).then(response => {
         this.userList = response.body
       }, response => {
+
       })
     },
 
@@ -295,8 +322,8 @@ export default {
   created() {
     document.title = 'CRM | Задачи'
 
-    // this.getAllUsers()
-    // this.getAllTasks()
+    this.getAllUsers()
+    this.getAllTasks()
   }
 }
 </script>
@@ -305,7 +332,7 @@ export default {
 
 <style lang="scss" scoped>
 .task_item {
-  padding: .5em 1em; transition: all .2s ease; margin-bottom: 1em; background-color: #fff; box-shadow: 0 2px 2px 0 rgba(0,0,0,0.16), 0 0 0 1px rgba(0,0,0,0.08); display: flex; align-items: flex-start;
+  padding: .5em 1em; transition: all .2s ease; margin-bottom: .66em; background-color: #fff; /* box-shadow: 0 2px 2px 0 rgba(0,0,0,0.16), 0 0 0 1px rgba(0,0,0,0.08); */ display: flex; align-items: flex-start;
   &:hover { background-color: #f7f7f7; }
 }
 .task_item__top { display: flex; align-items: flex-start; flex-wrap: nowrap; }
@@ -314,14 +341,14 @@ export default {
 .task_item__name { font-weight: bold; font-size: 1.1em; }
 .task_item__edit { 
   color: #888; font-size: .8em; margin-left: auto; white-space: nowrap; line-height: 1.6em; 
-  &:hover { text-decoration: underline; }
+  &:hover { color: #00BCD4; }
 }
 .task_item__description { margin-block-end: 1em; font-weight: 300; color: #444;}
 .task_item__props { color: #444; }
-.task_item__priority { display: inline-block; width: .4em; height: .4em; margin-right: 10px; border-radius: 2em; box-shadow: 0 2px 1px -2px rgba(0,0,0,.2), 0 1px 2px 0 rgba(0,0,0,.14), 0 0px 5px 0 rgba(0,0,0,.12); position: relative; top: -3px;}
-.task_item__priority-2 { background-color: #D84315;}
-.task_item__priority-3 { background-color: #F4511E;}
-.task_item__priority-4 { background-color: #FF7043;}
-.task_item__priority-5 { background-color: #FFAB91;}
-.task_item__priority-6 { background-color: #FBE9E7;}
+.task_item__priority { display: inline-block; width: .4em; height: .4em; margin-right: 10px; border-radius: 2em; /* box-shadow: 0 2px 1px -2px rgba(0,0,0,.2), 0 1px 2px 0 rgba(0,0,0,.14), 0 0px 5px 0 rgba(0,0,0,.12); */ position: relative; top: -3px;}
+.task_item__priority-2 { background-color: #F4511E;}
+.task_item__priority-3 { background-color: #FFEB3B;}
+.task_item__priority-4 { background-color: #9CCC65;}
+.task_item__priority-5 { background-color: #4DD0E1;}
+.task_item__priority-6 { background-color: #9575CD;}
 </style>

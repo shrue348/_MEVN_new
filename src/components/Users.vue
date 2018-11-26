@@ -9,7 +9,7 @@
       <div class="btn_block">
         <button class="btn btn_green" @click="addNewUserModal"><font-awesome-icon icon="plus"></font-awesome-icon> Создать</button>
         <div class="searchbar form"><input type="text" placeholder="Поиск..."> <button><font-awesome-icon icon="search"></font-awesome-icon></button></div>
-        <a href="#" class="btn btn_orange btn_round btn_icon mgla"><font-awesome-icon icon="bars"></font-awesome-icon></a>
+        <a href="javascript:;" class="btn btn_orange btn_round btn_icon mgla"><font-awesome-icon icon="bars"></font-awesome-icon></a>
       </div>
 
       <div class="loading" v-if="userListLoader"></div>
@@ -23,7 +23,7 @@
                 <font-awesome-icon v-if="user.role == 'director'" icon="fire" class="colorgreen mgr10"></font-awesome-icon> 
                 {{user.lastName}} {{user.name}}
               </div>
-              <a href="#" class="user_item__edit" @click="editUser(user._id)"><font-awesome-icon icon="pencil-alt"></font-awesome-icon> Редактировать</a>
+              <a href="javascript:;" class="user_item__edit" @click="editUser(user._id)"><font-awesome-icon icon="pencil-alt"></font-awesome-icon> Редактировать</a>
             </div>
             <div class="wbl font14">
               <div class="user_item__props">
@@ -46,14 +46,24 @@
       <template slot="header"><div class="modal_title">Добавить пользователя</div></template>
       <template slot="body">
         <div class="form-group-material">
-          <input type="text" required v-model="newUserModal.userData.login">
+          <input type="text" required v-model="newUserModal.userData.displayName">
           <div class="form-group-material-highlight"></div>
           <label>Логин *</label>
         </div>
         <div class="form-group-material">
-          <input type="text" required v-model="newUserModal.userData.password">
+          <input type="text" required v-model="newUserModal.userData.email">
+          <div class="form-group-material-highlight"></div>
+          <label>Email</label>
+        </div>
+        <div class="form-group-material">
+          <input type="password" required v-model="newUserModal.userData.password">
           <div class="form-group-material-highlight"></div>
           <label>Пароль</label>
+        </div>
+        <div class="form-group-material">
+          <input type="password" required v-model="passwordRepeat">
+          <div class="form-group-material-highlight"></div>
+          <label>Повторите пароль <span class="colorred none">(пароли не совпадают)</span></label>
         </div>
         <div class="form-group-material">
           <input type="text" required v-model="newUserModal.userData.lastName">
@@ -96,7 +106,7 @@
       </template>      
       <template slot="footer">
         <button class="btn btn_blank btn_noup modal_close" @click="showAddUserModal = false">Отмена</button>
-        <button class="btn" :disabled="newUserModal.userData.login.length == 0" @click="addNewUser">Создать</button>
+        <button class="btn" :disabled="newUserModal.userData.login.length == 0 || newUserModal.userData.password.length == 0 || newUserModal.userData.password != passwordRepeat" @click="addNewUser">Создать</button>
       </template>
     </modal>
 
@@ -117,12 +127,12 @@
           <label>Email</label>
         </div>
         <div class="form-group-material">
-          <input type="text" required v-model="editUserModal.userData.password">
+          <input type="password" required v-model="editUserModal.userData.password">
           <div class="form-group-material-highlight"></div>
           <label>Пароль</label>
         </div>
         <div class="form-group-material">
-          <input type="text" required v-model="passwordRepeat">
+          <input type="password" required v-model="passwordRepeat">
           <div class="form-group-material-highlight"></div>
           <label>Повторите пароль <span class="colorred none">(пароли не совпадают)</span></label>
         </div>
@@ -179,7 +189,7 @@
     <!-- <datepicker 
       placeholder="Выберите дату" 
       :language="datePicker.ru" 
-      :format="datePickerFormat" 
+      :format="datePickerFormat" //  ФОРМАТ ФУНКЦИЯ
       v-model="datePicker.date" 
       :monday-first="true" 
       :highlighted="datePicker.highlighted"
@@ -278,30 +288,26 @@ export default {
     },
 
     userSortedList(){
-      return this.userList.sort((min, max)=>{
-        return min.name - max.name
+      return this.userList.sort((min, max) => {
+        return min.displayName.toLowerCase() > max.displayName.toLowerCase()
       })
     },
 
     disabledSaveUser(){
       return false
-      // return (this.editUserModal.userData.password.length > 0 || this.passwordRepeat.length > 0) && this.editUserModal.userData.password != this.passwordRepeat
+      return (this.editUserModal.userData.password.length > 0 || this.passwordRepeat.length > 0) && this.editUserModal.userData.password != this.passwordRepeat
     },
   },
 
   methods: {
-    datePickerFormat(){
-      let dayNames = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'],
-          dayNum   = this.datePicker.date.getDay()
+    // datePickerFormat(){
+    //   let dayNames = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'],
+    //       dayNum   = this.datePicker.date.getDay()
 
-      this.datePicker.highlighted.days.length = 0
-      this.datePicker.highlighted.days.push(dayNum)
-      return dayNames[dayNum]
-    },
-
-    getHtml: function (data) {
-      //data contains html string for render
-    },
+    //   this.datePicker.highlighted.days.length = 0
+    //   this.datePicker.highlighted.days.push(dayNum)
+    //   return dayNames[dayNum]
+    // },
 
     addNewUserModal(){
       this.showAddUserModal = true
@@ -327,23 +333,27 @@ export default {
       this.$http.post(`${host.host}/user`, this.newUserModal.userData , {
         headers: {
           'Content-Type' : 'application/json; charset=UTF-8',
-          'Accept' : 'application/json'
+          'Accept' : 'application/json',
+          'Authorization': this.token
         }
       }).then(response => {
+        this.newUserModal.userData = {
+          login: '',
+          email: '',
+          name: '',
+          lastName: '',
+          phone: '',
+          position: '',
+          role: 1,
+          active: true,
+          note: ''
+        }
+        this.showAddUserModal = false
+        this.passwordRepeat = ''
         this.getAllUsers()
       }, response => {
+        return this.$toastr('error', 'Ошибка сервера. Не удалось создать пользователя.')
       })
-
-      this.newUserModal.userData = {
-        name: '',
-        lastName: '',
-        phone: '',
-        position: '',
-        role: 1,
-        active: true,
-        note: ''
-      }
-      this.showAddUserModal = false
     },
 
     editUser(id){
@@ -354,25 +364,26 @@ export default {
           'Authorization': this.token
         }
       }).then(response => {
+        this.passwordRepeat = ''
         this.editUserModal.userData = response.body
         this.showEditUserModal = true
       }, response => {
-        
+        return this.$toastr('error', 'Ошибка сервера. Не удалось загрузить пользователя.')
       })
     },
 
     saveUser(id){
       let obj = {
-        login:    this.editUserModal.userData.displayName,
-        email:    this.editUserModal.userData.email,
-        password: this.editUserModal.userData.password,
-        name:     this.editUserModal.userData.name,
-        lastName: this.editUserModal.userData.lastName,
-        phone:    this.editUserModal.userData.phone,
-        position: this.editUserModal.userData.position,
-        role:     this.editUserModal.userData.role,
-        active:   this.editUserModal.userData.active,
-        note:     this.editUserModal.userData.note
+        displayName: this.editUserModal.userData.displayName,
+        email:       this.editUserModal.userData.email,
+        password:    this.editUserModal.userData.password,
+        name:        this.editUserModal.userData.name,
+        lastName:    this.editUserModal.userData.lastName,
+        phone:       this.editUserModal.userData.phone,
+        position:    this.editUserModal.userData.position,
+        role:        this.editUserModal.userData.role,
+        active:      this.editUserModal.userData.active,
+        note:        this.editUserModal.userData.note
       }
 
       this.$http.put(`${host.host}/user/${id}`, obj, {
@@ -385,7 +396,7 @@ export default {
         this.showEditUserModal = false
         this.getAllUsers()
       }, response => {
-        
+        return this.$toastr('error', 'Ошибка сервера. Не удалось сохранить пользователя.')
       })
     },
 
@@ -399,33 +410,30 @@ export default {
         this.showEditUserModal = false
         this.getAllUsers()
       }, response => {
-        
+        return this.$toastr('error', 'Ошибка сервера. Не удалось удалить пользователя.')
       })
     }
   },
 
   created(){
     document.title = 'CRM | Пользователи'
-
     this.getAllUsers()
   },
 
   mounted(){
-    this.$on('modalClose', function(props) {
-      this.showUserModal = false
-    })
+    // this.$on('modalClose', function(props) {
+    //   this.showUserModal = false
+    // })
   }
 }
 </script>
 
 <style lang="scss" scoped>
-
-
 .user_item {
-  padding: .5em 1em; transition: all .2s ease; background-color: #fff; box-shadow: 0 2px 2px 0 rgba(0,0,0,0.16), 0 0 0 1px rgba(0,0,0,0.08); display: flex; align-items: flex-start;
+  padding: .5em 1em; transition: all .2s ease; background-color: #fff; /* box-shadow: 0 2px 2px 0 rgba(0,0,0,0.16), 0 0 0 1px rgba(0,0,0,0.08); */ display: flex; align-items: flex-start;
   &:hover { background-color: #f7f7f7; }
 
-  &:not(:last-child) { border-bottom: 1px solid #eaeaea; }
+  &:not(:last-child) { border-bottom: 1px solid #dfdfdf; }
 }
 .user_item__info { flex: 1 1 auto; }
 .user_item__name { font-weight: bold; font-size: 1.1em; }
@@ -437,7 +445,6 @@ export default {
 .user_item__img { border-radius: 100px; margin-right: 1.5em; margin-top: .5em; box-shadow: 0 0 0 .3em #fff, 0 0 0 .33em #ccc; }
 
 .edit_user_item__img { border-radius: 100px; box-shadow: 0 0 0 .3em #fff, 0 0 0 .33em #ccc; display: block; margin: 1em auto 2em; }
-
 </style>
 
 
