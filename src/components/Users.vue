@@ -106,7 +106,7 @@
       </template>      
       <template slot="footer">
         <button class="btn btn_blank btn_noup modal_close" @click="showAddUserModal = false">Отмена</button>
-        <button class="btn" :disabled="newUserModal.userData.login.length == 0 || newUserModal.userData.password.length == 0 || newUserModal.userData.password != passwordRepeat" @click="addNewUser">Создать</button>
+        <button class="btn" :disabled="newUserModal.userData.login.length == 0 && newUserModal.userData.password.length == 0 && newUserModal.userData.password != passwordRepeat" @click="addNewUser">Создать</button>
       </template>
     </modal>
 

@@ -197,8 +197,11 @@ router.post('/login', async(ctx, next) => {
   await passport.authenticate('local', function (err, user) {
 
     if (user == false) {
+      console.log("IF")
+
       ctx.body = "Login failed";
     } else {
+      console.log("ELSE")
       const payload = {
         id: user.id,
         displayName: user.displayName,
@@ -314,13 +317,13 @@ router.get('/login/checkadmin', async (ctx, next) => {
 
 // delete user by id
 
-router.delete('/login/:id', async (ctx, next) => {
+router.delete('/user/:id', async (ctx, next) => {
 
   await passport.authenticate('jwt', async function (err, user) {
 
     if (user) {
       try {
-        ctx.body = await User.findByIdAndUpdate(ctx.params.id, {deleted: true});
+        ctx.body = await User.findByIdAndUpdate(ctx.params.id, { deleted: true });
       }
       catch (err) {
         ctx.status = 400;
@@ -440,16 +443,25 @@ router.post('/task/comment/:id', async (ctx, next) => {
 
 //---Socket Communication-----//
 
-// let io = socketIO(server);
+let io = socketIO(server).listen(9999);
 
-// io.on('connection', socketioJwt.authorize({
-//   secret: jwtsecret,
-//   timeout: 15000
-// })).on('authenticated', function (socket) {
+io.on('connection', () => {
 
-//   console.log('this is the name from the JWT: ' + socket.decoded_token.displayName);
+  socketioJwt.authorize({
+    secret: jwtsecret,
+    timeout: 15000
+  })
+  
 
-//   socket.on("clientEvent", (data) => {
-//     console.log(data);
-//   })
-// });
+
+}).on('authenticated', (socket) => {
+
+  console.log('this is the name from the JWT: ' + socket.decoded_token.displayName);
+
+  socket.on("clientEvent", (data) => {
+    console.log(data);
+  })
+}).on('login', (socket) => {
+
+  console.log('LOGINED')
+});

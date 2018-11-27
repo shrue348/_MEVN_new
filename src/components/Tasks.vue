@@ -343,7 +343,7 @@ export default {
   color: #888; font-size: .8em; margin-left: auto; white-space: nowrap; line-height: 1.6em; 
   &:hover { color: #00BCD4; }
 }
-.task_item__description { margin-block-end: 1em; font-weight: 300; color: #444;}
+.task_item__description { margin-block-end: 1em; color: #444;}
 .task_item__props { color: #444; }
 .task_item__priority { display: inline-block; width: .4em; height: .4em; margin-right: 10px; border-radius: 2em; /* box-shadow: 0 2px 1px -2px rgba(0,0,0,.2), 0 1px 2px 0 rgba(0,0,0,.14), 0 0px 5px 0 rgba(0,0,0,.12); */ position: relative; top: -3px;}
 .task_item__priority-2 { background-color: #F4511E;}

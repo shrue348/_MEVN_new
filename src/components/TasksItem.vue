@@ -61,11 +61,12 @@
                     <div slot-scope="menuLevel" class="comment_list">
 
                       <div class="comment" :class="{'comment-with_comments': comment.children.length > 0}" v-for="(comment, key) in menuLevel">
-                        <img src="https://cdn.dribbble.com/users/16041/avatars/small/e6c7fac4033b9c233a3bd82ce55c4430.jpg"
-                          alt="" class="comment__user">
+                       
                         
                         <div class="comment__info">
                           <div class="comment__top wbl">
+                            <img src="https://cdn.dribbble.com/users/16041/avatars/small/e6c7fac4033b9c233a3bd82ce55c4430.jpg" alt="" class="comment__user">
+
                             <div class="comment__title">{{comment.creator}}</div>
                             <div class="colorgrey font12 mgl20">{{comment.addedAt|friendlyOnlyDate}}</div>
                             <div class="colorgrey font12 mgla">id: {{comment.comment_id}}, parent: {{comment.parent}}</div>
@@ -276,31 +277,30 @@ export default {
 .task_item__props { margin-bottom: 2em; width: 100%; }
 
 .comment { display: flex; align-items: flex-start; flex-wrap: wrap; position: relative; }
+.comment__top { align-items: center; }
 .comment__title { font-weight: bold; font-size: 12px; }
 .comment__user {
     border-radius: 100px;
-    margin-right: 1.5em;
-    margin-top: .5em;
-    -webkit-box-shadow: 0 0 0 0.3em #fff, 0 0 0 0.33em #ccc;
-    box-shadow: 0 0 0 0.3em #fff, 0 0 0 0.33em #ccc;
-    width: 32px;
-    height: 32px;
+    margin-right: .5em;
+    /* -webkit-box-shadow: 0 0 0 0.3em #fff, 0 0 0 0.33em #ccc;
+    box-shadow: 0 0 0 0.3em #fff, 0 0 0 0.33em #ccc; */
+    width: 24px;
+    height: 24px;
     position: relative;
     z-index: 3;
-    top: -3px;
 }
 .comment__info { flex: 1 1 auto; }
 .addCommentForm { padding: .7em; box-sizing: border-box; background-color: #f6f6f6; }
 
-.comment_list { flex: 0 0 100%; box-sizing: border-box; }
-.comment .comment_list { padding-left: 2em; margin-top: 1em; }
+.comment_list { flex: 0 0 100%; box-sizing: border-box;  }
+.comment .comment_list { padding-left: 1em; margin-top: 1em; border-left: 1px solid #ddd; }
 .comment .comment_list .comment { margin-bottom: 10px; }
-.comment.comment-with_comments .comment:before { 
+/* .comment.comment-with_comments .comment:before { 
   position: absolute; content: ''; left: -20px; top: -70px; width: 2px; height: 90px;  
   background: -moz-linear-gradient(top, rgba(30,87,153,0) 0%, rgba(204,204,204,1) 100%);
   background: -webkit-linear-gradient(top, rgba(30,87,153,0) 0%,rgba(204,204,204,1) 100%);
   background: linear-gradient(to bottom, rgba(30,87,153,0) 0%,rgba(204,204,204,1) 100%);
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#001e5799', endColorstr='#cccccc',GradientType=0 );
 }
-.comment.comment-with_comments .comment:after { position: absolute; content: ''; left: -20px; top: 9px; width: 10px; height: 10px; border-bottom: 2px solid #ccc; }
+.comment.comment-with_comments .comment:after { position: absolute; content: ''; left: -20px; top: 9px; width: 10px; height: 10px; border-bottom: 2px solid #ccc; } */
 </style>
