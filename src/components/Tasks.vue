@@ -38,6 +38,7 @@
                 <div class="wbl font14">
                   <div class="task_item__props">
                     <div class="task_item__prop_line mgb5" v-if="task.creator">Постановщик: {{task.creator}}</div>
+                    <div class="task_item__prop_line mgb5" v-if="task.maker">Исполнитель: {{task.maker}}</div>
                     <div class="task_item__prop_line task_item__description" v-if="task.description">{{ task.description | striphtml | truncate(450, '...' )}}</div>
                   </div>
                 </div>
@@ -75,8 +76,11 @@
         <div class="row">
           <div class="col-3">
             <div class="form-group-material">
-              <select required>
-                <option v-for="(value, key) in userList" :value="key">{{value.lastName}} {{value.name}}</option>
+              <select required v-model="newTaskModal.taskData.maker_id">
+                <option v-for="(value, key) in userList" :value="value._id">
+                  <template v-if="value.lastName || value.name">{{value.lastName}} {{value.name}}</template>
+                  <template v-if="!value.lastName || !value.name">{{value.displayName}}</template>
+                </option>
               </select>
               <div class="form-group-material-highlight"></div>
               <label>Исполнитель</label>
@@ -123,7 +127,7 @@
             </div>
           </div>
         </div>
-        <div class="form-group-material">
+        <div class="form-group-material form-group-material-check">
           <label class="check-switch mgr10 valignmiddle"><input type="checkbox" v-model="newTaskModal.taskData.active">
             <div class="track">
               <div class="knob"></div>
@@ -183,6 +187,7 @@ export default {
           title: '',
           creator: '',
           maker: '',
+          maker_id: '',
           linkedUsers: [],
           status: '',
           priority: 4,
@@ -351,4 +356,9 @@ export default {
 .task_item__priority-4 { background-color: #9CCC65;}
 .task_item__priority-5 { background-color: #4DD0E1;}
 .task_item__priority-6 { background-color: #9575CD;}
+
+
+@media (max-width: 980px) {
+  .page_row__right { display: none; }
+}
 </style>

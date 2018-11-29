@@ -21,7 +21,8 @@
               <div class="user_item__name">
                 <font-awesome-icon v-if="user.role == 'admin'" icon="fire" class="colorred mgr10"></font-awesome-icon> 
                 <font-awesome-icon v-if="user.role == 'director'" icon="fire" class="colorgreen mgr10"></font-awesome-icon> 
-                {{user.lastName}} {{user.name}}
+                <template v-if="user.lastName || user.name">{{user.lastName}} {{user.name}}</template>
+                <template v-if="!user.lastName || !user.name">{{user.displayName}}</template>
               </div>
               <a href="javascript:;" class="user_item__edit" @click="editUser(user._id)"><font-awesome-icon icon="pencil-alt"></font-awesome-icon> Редактировать</a>
             </div>
@@ -92,7 +93,7 @@
           <div class="form-group-material-highlight"></div>
           <label>Роль</label>
         </div>
-        <div class="form-group-material">
+        <div class="form-group-material form-group-material-check">
           <label class="check-switch mgr10 valignmiddle"><input type="checkbox" v-model="newUserModal.userData.active"><div class="track"><div class="knob"></div></div></label>
           <span class="check-switch-desc">
             Активировать <br><span class="colorgrey font12 lh1">Чтобы удалить пользователя деактивируйте его</span>
@@ -163,7 +164,7 @@
           <div class="form-group-material-highlight"></div>
           <label>Роль</label>
         </div>
-        <div class="form-group-material">
+        <div class="form-group-material form-group-material-check">
           <label class="check-switch mgr10 valignmiddle"><input type="checkbox" v-model="editUserModal.userData.active">
             <div class="track">
               <div class="knob"></div>
@@ -288,9 +289,10 @@ export default {
     },
 
     userSortedList(){
-      return this.userList.sort((min, max) => {
-        return min.displayName.toLowerCase() > max.displayName.toLowerCase()
-      })
+      return this.userList
+      // return this.userList.sort((min, max) => {
+      //   return min.displayName.toLowerCase() > max.displayName.toLowerCase()
+      // })
     },
 
     disabledSaveUser(){
@@ -352,7 +354,7 @@ export default {
         this.passwordRepeat = ''
         this.getAllUsers()
       }, response => {
-        return this.$toastr('error', 'Ошибка сервера. Не удалось создать пользователя.')
+        return this.$toastr('error', 'Ошибка сервера. Не удалось создать пользователя. ' + response.body )
       })
     },
 

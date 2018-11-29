@@ -46,22 +46,33 @@
                     </template>
                     <hr class="mgb10">
                     <a class="comment__response_link" href="javascript:;" @click="showAddComment(0)">ответить</a>
+
+                    <div v-if="firstComment" class="addCommentForm">
+                      <div class="loading" v-if="addCommentLoader"></div>
+                      <template v-else>
+                        <div class="form-group mgb10">
+                          <label>Написать комментарий</label>
+                          <quill-editor v-model="newComment.text" ref="addCommentEditor" :options="editorOption">
+                          </quill-editor>
+                        </div>
+                        <div class="form-group mgb10">
+                          <button class="btn btn-green btn_noup" @click="addComment">Отправить</button>
+                        </div>
+                      </template>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div class="task_item">
+            <div class="task_item" v-if="task.comments.length > 0">
               <div class="task_item__comments">
                 <div class="h4 mgb20">Комментарии:</div>
 
-                <template v-if="task.comments.length > 0">
-                  
                   <v-tree :scope-data="commentsTree">
                     <div slot-scope="menuLevel" class="comment_list">
 
                       <div class="comment" :class="{'comment-with_comments': comment.children.length > 0}" v-for="(comment, key) in menuLevel">
-                       
                         
                         <div class="comment__info">
                           <div class="comment__top wbl">
@@ -95,7 +106,6 @@
                     </div>
                   </v-tree>
 
-                </template>
               </div>
             </div>
           </div>
@@ -142,7 +152,7 @@ export default {
         comments: []
       },
       addCommentLoader: false,
-
+      firstComment: false,
       newCommentTemplate: {
         parent: 0,
         text: ''
@@ -223,6 +233,7 @@ export default {
       let comments = this.task.comments 
 
       this.newComment.parent = key
+      this.firstComment = false
 
       for(let i=0; i < comments.length; i++){
         comments[i].addComment = false
@@ -230,6 +241,8 @@ export default {
           comments[i].addComment = true
         }
       }
+
+      if (key == 0) this.firstComment = true
     },
 
     addComment(){
@@ -276,7 +289,7 @@ export default {
 .task_item__comments { width: 100%; }
 .task_item__props { margin-bottom: 2em; width: 100%; }
 
-.comment { display: flex; align-items: flex-start; flex-wrap: wrap; position: relative; }
+.comment { display: flex; align-items: flex-start; flex-wrap: wrap; position: relative; margin-bottom: 1.3em; }
 .comment__top { align-items: center; }
 .comment__title { font-weight: bold; font-size: 12px; }
 .comment__user {
@@ -293,14 +306,11 @@ export default {
 .addCommentForm { padding: .7em; box-sizing: border-box; background-color: #f6f6f6; }
 
 .comment_list { flex: 0 0 100%; box-sizing: border-box;  }
-.comment .comment_list { padding-left: 1em; margin-top: 1em; border-left: 1px solid #ddd; }
+.comment .comment_list { padding-left: 1em; margin-top: 1em; position: relative; }
+.comment .comment_list:before { content: ''; position: absolute; margin: auto; left: 0; top: -2px; bottom: 13px; border-left: 1px solid #ddd; }
 .comment .comment_list .comment { margin-bottom: 10px; }
-/* .comment.comment-with_comments .comment:before { 
-  position: absolute; content: ''; left: -20px; top: -70px; width: 2px; height: 90px;  
-  background: -moz-linear-gradient(top, rgba(30,87,153,0) 0%, rgba(204,204,204,1) 100%);
-  background: -webkit-linear-gradient(top, rgba(30,87,153,0) 0%,rgba(204,204,204,1) 100%);
-  background: linear-gradient(to bottom, rgba(30,87,153,0) 0%,rgba(204,204,204,1) 100%);
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#001e5799', endColorstr='#cccccc',GradientType=0 );
+
+@media (max-width: 980px) {
+  .page_row__right { display: none; }
 }
-.comment.comment-with_comments .comment:after { position: absolute; content: ''; left: -20px; top: 9px; width: 10px; height: 10px; border-bottom: 2px solid #ccc; } */
 </style>

@@ -140,7 +140,7 @@ Vue.use(VueToastr, {
 	defaultPosition: 'toast-top-right',
 	defaultType: 'info'
 })
-Vue.use(VueSocketio, 'localhost:9999');
+// Vue.use(VueSocketio, 'localhost:9999');
 Vue.use(VueQuillEditor)
 Vue.use(VueTuicalendar)
 Vue.component('v-tree', VTree);
