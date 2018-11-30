@@ -1,6 +1,6 @@
 <template>
   <div class="headers">
-    <div class="headers_top shadow">
+    <div class="headers_top">
       <div class="headers_top_wrap">
         <div class="headers_top_wrap__left">
           <button class="header_btn" :class="{'header_btn-active' : leftMenuOpen}" @click="toggleLeftMenu"><font-awesome-icon icon="bars"></font-awesome-icon></button>
