@@ -163,4 +163,8 @@ export default {
   &:active { color: #212121; background-color: rgba(255,255,255,.7);; }
   &-active { background-color: #fff; }
 }
+
+
+@media (max-width: 980px) {}
+
 </style>

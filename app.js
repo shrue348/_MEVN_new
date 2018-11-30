@@ -377,9 +377,14 @@ router.get('/task', async (ctx, next) => {
         // отдаем только те где юзер исполнитель или постановщик задач
 
         obj = obj.map((item) => {
+          
           for (let i = 0; i < users.length; i++) {
-            if (users[i]._id == item.maker_id) item.maker = users[i].displayName
-            if (users[i]._id == item.creator_id) item.creator = users[i].displayName
+            if (users[i]._id == item.maker_id) 
+              item.maker = users[i].displayName
+            if (users[i]._id == item.creator_id) 
+              item.creator = users[i].displayName
+
+            user[i].commentCount = user[i].comments.length
           }
           if ( item.creator_id == user._id || item.maker_id == user._id  ) return item
         })

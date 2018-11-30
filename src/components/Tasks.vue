@@ -336,6 +336,8 @@ export default {
 
 
 <style lang="scss" scoped>
+.btn_block { flex-wrap: wrap; }
+
 .task_item {
   padding: .5em 1em; transition: all .2s ease; margin-bottom: .66em; background-color: #fff; /* box-shadow: 0 2px 2px 0 rgba(0,0,0,0.16), 0 0 0 1px rgba(0,0,0,0.08); */ display: flex; align-items: flex-start;
   &:hover { background-color: #f7f7f7; }

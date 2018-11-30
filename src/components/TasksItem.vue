@@ -79,7 +79,7 @@
                             <img src="https://cdn.dribbble.com/users/16041/avatars/small/e6c7fac4033b9c233a3bd82ce55c4430.jpg" alt="" class="comment__user">
 
                             <div class="comment__title">{{comment.creator}}</div>
-                            <div class="colorgrey font12 mgl20">{{comment.addedAt|friendlyOnlyDate}}</div>
+                            <div class="colorgrey font12 mgl20">{{comment.addedAt|friendlyDate}}</div>
                             <div class="colorgrey font12 mgla">id: {{comment.comment_id}}, parent: {{comment.parent}}</div>
                           </div>
                           <div class="txt" v-html="comment.text"></div>
@@ -284,6 +284,7 @@ export default {
 .task_item__edit { 
   color: #888; font-size: .8em; margin-left: auto; white-space: nowrap; line-height: 1.6em; 
   &:hover { color: #00BCD4; }
+  &-delete { color: #00BCD4; }
 }
 .task_item__description { margin-block-end: 1em; font-weight: 400; color: #444; width: 100%; padding: .7em; box-sizing: border-box; background-color: #f6f6f6; }
 .task_item__comments { width: 100%; }
